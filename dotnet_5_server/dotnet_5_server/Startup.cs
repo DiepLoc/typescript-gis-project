@@ -11,6 +11,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using dotnet_5_server.Data;
+using Microsoft.EntityFrameworkCore;
+using dotnet_5_server.Repositories;
 
 namespace dotnet_5_server
 {
@@ -26,7 +29,10 @@ namespace dotnet_5_server
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<SqlServerRealEstateContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultSqlServerConnection")));
 
+            services.AddScoped<ICertificateRepository, CertificateRepository>();
 
             services.AddCors(options =>
             {
