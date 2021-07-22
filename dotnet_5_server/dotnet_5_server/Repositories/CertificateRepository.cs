@@ -40,13 +40,13 @@ namespace dotnet_5_server.Repositories
 
         public async Task<IEnumerable<Certificate>> GetAll(QueryParameter query)
         {
-            IQueryable<Certificate> queryable = GetQueryDevice(query);
+            IQueryable<Certificate> queryable = GetQuery(query);
 
-            while (await queryable.CountAsync() < 1 && query.Page > 1)
-            {
-                query.Page = query.Page - 1;
-                queryable = GetQueryDevice(query);
-            }
+            //while (await queryable.CountAsync() < 1 && query.Page > 1)
+            //{
+            //    query.Page = query.Page - 1;
+            //    queryable = GetQuery(query);
+            //}
             return await queryable.ToListAsync();
         }
 
@@ -73,14 +73,15 @@ namespace dotnet_5_server.Repositories
             await dbContext.SaveChangesAsync();
         }
 
-        private IQueryable<Certificate> GetQueryDevice(QueryParameter query)
+        private IQueryable<Certificate> GetQuery(QueryParameter query)
         {
             var pageSize = query.PageSize;
-            var page = query.Page;
+            var offset = query.Offset;
 
-            IQueryable<Certificate> queryable = dbContext.Certificates.Include(c => c.Locations);
-            queryable = queryable.OrderBy(c => c.MapSheet).OrderBy(c => c.LandParcel)
-                .Skip(pageSize * (page - 1))
+            IQueryable<Certificate> queryable = dbContext.Certificates
+                .Include(c => c.Locations)
+                .OrderByDescending(c => c.ID)
+                .Skip(offset)
                 .Take(pageSize);
 
             return queryable;

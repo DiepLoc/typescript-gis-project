@@ -10,7 +10,7 @@ using dotnet_5_server.Data;
 
 namespace dotnet_5_server.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/Certificates")]
     [ApiController]
     public class CertificateController : ControllerBase
     {

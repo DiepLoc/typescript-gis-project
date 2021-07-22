@@ -26,6 +26,11 @@
   color: rgb(112, 76, 182);
 }
 
+.ant-descriptions-item-content {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
 @keyframes App-logo-float {
   0% {
     transform: translateY(0);

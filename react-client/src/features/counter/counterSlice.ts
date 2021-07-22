@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { RootState, AppThunk } from '../../app/store';
 import { fetchCount } from './counterAPI';
 
@@ -51,14 +51,14 @@ export const { increment, decrement, incrementByAmount } = counterSlice.actions;
 
 export const selectCount = (state: RootState) => state.counter.value;
 
-export const incrementIfOdd = (amount: number): AppThunk => (
-  dispatch,
-  getState
-) => {
-  const currentValue = selectCount(getState());
-  if (currentValue % 2 === 1) {
-    dispatch(incrementByAmount(amount));
-  }
-};
+// export const incrementIfOdd = (amount: number): AppThunk => (
+//   dispatch,
+//   getState
+// ) => {
+//   const currentValue = selectCount(getState());
+//   if (currentValue % 2 === 1) {
+//     dispatch(incrementByAmount(amount));
+//   }
+// };
 
 export default counterSlice.reducer;

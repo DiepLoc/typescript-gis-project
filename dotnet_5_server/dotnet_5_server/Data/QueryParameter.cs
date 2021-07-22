@@ -11,6 +11,8 @@ namespace dotnet_5_server.Data
 
         public int Page { get; set; } = 1;
 
+        public int Offset { get; set; } = 0;
+
         public void Deconstruct(out int pageSize, out int page)
         {
             pageSize = this.PageSize;
