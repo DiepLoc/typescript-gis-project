@@ -29,14 +29,16 @@ interface MyKnownError {
 export const getMoreCertificates = createAsyncThunk(
   "certificate/getMoreCertificates",
   async (data: void, { dispatch, getState, rejectWithValue }) => {
-    dispatch(loadingSomething);
+    dispatch(loadingSomething());
     const state = getState() as RootState;
     const offset = state.certificate.records.length;
     const loadMore = state.certificate.loadMore;
     try {
       return (await fetchAll(offset, loadMore)).certificates;
     } catch (err) {
-      return rejectWithValue(err.response.data as MyKnownError);
+      if (err.response) {
+        return rejectWithValue(err.response.data as MyKnownError);
+      } else return rejectWithValue({message: "Network error"});
     }
   }
 );
@@ -44,11 +46,13 @@ export const getMoreCertificates = createAsyncThunk(
 export const addCertificate = createAsyncThunk(
   "certificate/addCertificate",
   async (newCertificate: Certificate, thunkAPI) => {
-    thunkAPI.dispatch(loadingSomething);
+    thunkAPI.dispatch(loadingSomething());
     try {
       return await fetchAdd(newCertificate);
     } catch (err) {
-      return thunkAPI.rejectWithValue(err.response.data as MyKnownError);
+      if (err.response) {
+        return thunkAPI.rejectWithValue(err.response.data as MyKnownError);
+      } else return thunkAPI.rejectWithValue({message: "Network error"});
     }
   }
 );
@@ -56,12 +60,14 @@ export const addCertificate = createAsyncThunk(
 export const deleteCertificate = createAsyncThunk(
   "certificate/deleteCertificate",
   async (id: number, thunkAPI) => {
-    thunkAPI.dispatch(loadingSomething);
+    thunkAPI.dispatch(loadingSomething());
     try {
       await fetchDelete(id);
       return id;
     } catch (err) {
-      return thunkAPI.rejectWithValue(err.response.data as MyKnownError);
+      if (err.response) {
+        return thunkAPI.rejectWithValue(err.response.data as MyKnownError);
+      } else return thunkAPI.rejectWithValue({message: "Network error"});
     }
   }
 );
@@ -69,12 +75,14 @@ export const deleteCertificate = createAsyncThunk(
 export const editCertificate = createAsyncThunk(
   "certificate/editCertificate",
   async (data: Certificate & {id: number}, thunkAPI) => {
-    thunkAPI.dispatch(loadingSomething);
+    thunkAPI.dispatch(loadingSomething());
     try {
       await fetchEdit(data.id!, data);
       return data;
     } catch (err) {
-      return thunkAPI.rejectWithValue(err.response.data as MyKnownError);
+      if (err.response) {
+        return thunkAPI.rejectWithValue(err.response.data as MyKnownError);
+      } else return thunkAPI.rejectWithValue({message: "Network error"});
     }
   }
 );
@@ -98,7 +106,7 @@ export const certificateSlice = createSlice({
         action.payload.forEach((certificate) => {
           if (!state.records.some((r) => r.id === certificate.id))
             state.records.push(certificate);
-        });
+        })
       })
       .addCase(getMoreCertificates.rejected, (state, action) => {
         state.status = "failed";

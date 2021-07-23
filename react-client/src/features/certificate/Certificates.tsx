@@ -27,8 +27,12 @@ const Certificates = () => {
 
   const dispatch: AppDispatch = useAppDispatch();
 
-  const getMore = () => {
-    dispatch(getMoreCertificates());
+  const getMore = async () => {
+    try {
+      await dispatch(getMoreCertificates()).unwrap();
+    } catch (err) {
+      message.error(helperGetError(err));
+    }
   };
 
   useEffect(() => {
