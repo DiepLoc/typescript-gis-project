@@ -6,6 +6,8 @@ interface props {
   certificateId: number;
 }
 
+const canvasOffset = 50;
+
 const getCoorWithCanvas = (
   coor: number,
   minValue: number,
@@ -25,6 +27,8 @@ const DrawLocation = ({ locations, certificateId }: props) => {
 
   useEffect(() => {
     const c = document.getElementById(canvasId) as HTMLCanvasElement;
+    c.width = 400;
+    c.height = 250;
     setCanvas(c);
     setCtx(c.getContext("2d"));
   }, []);
@@ -47,20 +51,24 @@ const DrawLocation = ({ locations, certificateId }: props) => {
     const maxX = locations.reduce((a, b) => Math.max(a, b.longitudeX), 0);
     const maxY = locations.reduce((a, b) => Math.max(a, b.latitudeY), 0);
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.beginPath();
-    let firstCoors = {x: 0, y: 0};
-    locations.forEach((l, index) => {
-      const x = getCoorWithCanvas(l.longitudeX, minX, maxX, canvas.width - 20);
-      const y = getCoorWithCanvas(l.latitudeY, minY, maxY, canvas.height - 20);
-      if (index === 0) {
-        firstCoors = {x, y};
-        ctx.moveTo(x + 10, y + 10);
-      } 
-      else ctx.lineTo(x + 10, y + 10);
-    });
-    ctx.lineTo(firstCoors.x + 10, firstCoors.y + 10);
+    ctx.font = "15px Arial";
     ctx.strokeStyle = "red";
+    ctx.clearRect(0, 0, canvas.width, canvas.height);  
+    ctx.beginPath();
+
+    let firstCoors = { x: 0, y: 0 };
+    locations.forEach((l, index) => {
+      const x = getCoorWithCanvas(l.longitudeX, minX, maxX, canvas.width - canvasOffset);
+      const y = getCoorWithCanvas(l.latitudeY, minY, maxY, canvas.height - canvasOffset);
+
+      if (index === 0) {
+        firstCoors = { x, y };
+        ctx.moveTo(x + canvasOffset/2, y + canvasOffset/2);
+      } else ctx.lineTo(x + canvasOffset/2, y + canvasOffset/2);
+
+      ctx.fillText(`${index + 1}`, x + canvasOffset/2, y + canvasOffset/2);
+    });
+    ctx.lineTo(firstCoors.x + canvasOffset/2, firstCoors.y + canvasOffset/2);
     ctx.stroke();
   };
 
