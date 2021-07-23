@@ -11,7 +11,7 @@ const headerConfig = [
   {
     key: "certificate",
     displayName: "Certificates",
-    link: "/catificate",
+    link: "/certificate",
   },
 ]
 

@@ -32,6 +32,20 @@ namespace dotnet_5_server.Controllers
             return certificate;
         }
 
+        [HttpPost("{id}/location")]
+        public async Task<IActionResult> AddLocationForCertificate(int id, Location newLocation)
+        {
+            await repo.AddLocation(id, newLocation);
+            return NoContent();
+        }
+
+        [HttpDelete("{id}/location/{idLocation}")]
+        public async Task<IActionResult> AddLocationForCertificate(int id, int idLocation)
+        {
+            await repo.RemoveLocation(idLocation);
+            return NoContent();
+        }
+
         [HttpGet]
         public async Task<Object> GetAllCertificates([FromQuery] QueryParameter queryParam)
         {
@@ -39,8 +53,8 @@ namespace dotnet_5_server.Controllers
             var count = await repo.GetTotalCount(queryParam);
 
             if (certificates == null) return NotFound();
-            var (pageSize, page) = queryParam;
-            return new { certificates, pageInfo = new { pageSize, page, count, pageCount = (int)Math.Ceiling((double)count / pageSize) } };
+            var (pageSize, page, offset) = queryParam;
+            return new { certificates, pageInfo = new { pageSize, page, count, offset, pageCount = (int)Math.Ceiling((double)count / pageSize) } };
         }
 
         [HttpPost]

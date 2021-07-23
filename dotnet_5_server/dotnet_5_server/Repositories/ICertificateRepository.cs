@@ -20,5 +20,10 @@ namespace dotnet_5_server.Repositories
         Task Delete(int id);
 
         Task<int> GetTotalCount(QueryParameter query);
+
+        Task AddLocation(int id, Location location);
+
+        Task RemoveLocation(int locationId);
+
     }
 }

@@ -60,8 +60,8 @@ namespace dotnet_5_server
             if (env.IsDevelopment())
             {
                 //app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "dotnet_5_server v1"));
+                //app.UseSwagger();
+                //app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "dotnet_5_server v1"));
             }
             app.UseExceptionHandler("/error");
 

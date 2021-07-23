@@ -1,25 +1,29 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../../app/store";
 import { Certificate } from "./certificate.interface";
-import { fetchAdd, fetchAll, fetchDelete, fetchEdit } from "./certificateAPI";
+import certificateAPI from "./certificateAPI";
+const { fetchAdd, fetchAll, fetchDelete, fetchEdit } = certificateAPI;
 
 export interface CertificateState {
   records: Certificate[];
   status: "idle" | "loading" | "failed";
-  error: any;
+  error: MyKnownError | null;
   loadMore: number;
+  isFull: boolean;
 }
 
 const initialState = {
   records: [],
   status: "idle",
   error: null,
-  loadMore: 5,
+  loadMore: 3,
+  isFull: false,
 } as CertificateState;
 
 interface MyKnownError {
   message: string;
   statusCode: number;
+  errors: object;
 }
 
 export const getMoreCertificates = createAsyncThunk(
@@ -32,7 +36,7 @@ export const getMoreCertificates = createAsyncThunk(
     try {
       return (await fetchAll(offset, loadMore)).certificates;
     } catch (err) {
-      return rejectWithValue(err as MyKnownError);
+      return rejectWithValue(err.response.data as MyKnownError);
     }
   }
 );
@@ -44,7 +48,7 @@ export const addCertificate = createAsyncThunk(
     try {
       return await fetchAdd(newCertificate);
     } catch (err) {
-      return thunkAPI.rejectWithValue(err as MyKnownError);
+      return thunkAPI.rejectWithValue(err.response.data as MyKnownError);
     }
   }
 );
@@ -57,20 +61,20 @@ export const deleteCertificate = createAsyncThunk(
       await fetchDelete(id);
       return id;
     } catch (err) {
-      return thunkAPI.rejectWithValue(err as MyKnownError);
+      return thunkAPI.rejectWithValue(err.response.data as MyKnownError);
     }
   }
 );
 
 export const editCertificate = createAsyncThunk(
   "certificate/editCertificate",
-  async (data: Certificate, thunkAPI) => {
+  async (data: Certificate & {id: number}, thunkAPI) => {
     thunkAPI.dispatch(loadingSomething);
     try {
       await fetchEdit(data.id!, data);
       return data;
     } catch (err) {
-      return thunkAPI.rejectWithValue(err as MyKnownError);
+      return thunkAPI.rejectWithValue(err.response.data as MyKnownError);
     }
   }
 );
@@ -79,14 +83,18 @@ export const certificateSlice = createSlice({
   name: "certificate",
   initialState,
   reducers: {
-    loadingSomething: (state, action) => {
+    loadingSomething: (state, action: PayloadAction<void>) => {
       state.status = "loading";
     },
   },
   extraReducers: (bulder) => {
     bulder
-      .addCase(getMoreCertificates.fulfilled, (state, action) => {
+      .addCase(getMoreCertificates.fulfilled, (state, action: PayloadAction<Certificate[]>) => {
         state.status = "idle";
+        if (action.payload.length < 1) {
+          state.isFull = true;
+          return;
+        }
         action.payload.forEach((certificate) => {
           if (!state.records.some((r) => r.id === certificate.id))
             state.records.push(certificate);
@@ -94,21 +102,21 @@ export const certificateSlice = createSlice({
       })
       .addCase(getMoreCertificates.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload;
+        state.error = action.payload as MyKnownError;
       });
 
     bulder
-      .addCase(addCertificate.fulfilled, (state, action) => {
+      .addCase(addCertificate.fulfilled, (state, action: PayloadAction<Certificate>) => {
         state.status = "idle";
-        state.records.push(action.payload);
+        state.records.unshift(action.payload);
       })
-      .addCase(addCertificate.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload;
-      });
+      // .addCase(addCertificate.rejected, (state, action) => {
+      //   state.status = "failed";
+      //   state.error = action.payload as MyKnownError;
+      // });
 
     bulder
-      .addCase(deleteCertificate.fulfilled, (state, action) => {
+      .addCase(deleteCertificate.fulfilled, (state, action: PayloadAction<number>) => {
         state.status = "idle";
         if (state.records.some((c) => c.id === action.payload)) {
           const newRecords = state.records.filter(
@@ -119,11 +127,11 @@ export const certificateSlice = createSlice({
       })
       .addCase(deleteCertificate.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload;
+        state.error = action.payload as MyKnownError;
       });
 
     bulder
-      .addCase(editCertificate.fulfilled, (state, action) => {
+      .addCase(editCertificate.fulfilled, (state, action: PayloadAction<Certificate>) => {
         state.status = "idle";
         const beforeData = state.records.find(
           (c) => c.id === action.payload.id
@@ -138,10 +146,10 @@ export const certificateSlice = createSlice({
           state.records = newRecords;
         }
       })
-      .addCase(editCertificate.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload;
-      });
+      // .addCase(editCertificate.rejected, (state, action) => {
+      //   state.status = "failed";
+      //   state.error = action.payload as MyKnownError;
+      // });
   },
 });
 
@@ -153,21 +161,3 @@ export const selectCertificates = (state: RootState) =>
 
 export const { loadingSomething } = certificateSlice.actions;
 export default certificateSlice.reducer;
-
-// export const getCertificate = createAsyncThunk<
-//   Certificate | null,
-//   number,
-//   { state: RootState; rejectValue: MyKnownError }
-// >(
-//   "certificate/getCertificate",
-//   async (id: number, { getState, rejectWithValue }) => {
-//     const state = getState();
-//     if (selectCacheCertificateIds(state).includes(id)) return null;
-//     try {
-//       const certificate = await fetchById(id);
-//       return certificate;
-//     } catch (err) {
-//       return rejectWithValue(err as MyKnownError);
-//     }
-//   }
-// );

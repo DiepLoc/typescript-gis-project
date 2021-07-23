@@ -62,14 +62,29 @@ namespace dotnet_5_server.Repositories
 
         public async Task Update(int id, Certificate newCertificate)
         {
-            if (newCertificate != null && id != newCertificate.ID) throw new Exception("Bad request");
+            if (id != newCertificate.ID) throw new Exception("Bad request");
 
+            //dbContext.Entry(certificate).State = EntityState.Detached;
+            //dbContext.Entry(newCertificate).State = EntityState.Modified;
+            dbContext.Certificates.Update(newCertificate);
+            await dbContext.SaveChangesAsync();
+        }
+
+        public async Task AddLocation(int id, Location location)
+        {
             var certificate = await dbContext.Certificates.FindAsync(id);
+            if (certificate == null) throw new Exception("Bad request");
 
-            if (certificate == null) throw new Exception("Not found");
+            location.CertificateID = id;
+            certificate.Locations.Add(location);
+            await dbContext.SaveChangesAsync();
+        }
 
-            dbContext.Entry(certificate).State = EntityState.Detached;
-            dbContext.Entry(newCertificate).State = EntityState.Modified;
+        public async Task RemoveLocation(int locationId)
+        {
+            var location = await dbContext.Locations.FindAsync(locationId);
+            if (location == null) throw new Exception("Bad request");
+            dbContext.Locations.Remove(location);
             await dbContext.SaveChangesAsync();
         }
 
@@ -77,11 +92,32 @@ namespace dotnet_5_server.Repositories
         {
             var pageSize = query.PageSize;
             var offset = query.Offset;
+            var page = query.Page;
+            var sortBy = query.SortBy;
 
             IQueryable<Certificate> queryable = dbContext.Certificates
-                .Include(c => c.Locations)
-                .OrderByDescending(c => c.ID)
-                .Skip(offset)
+                .Include(c => c.Locations);
+
+            switch(sortBy)
+            {
+                case QueryParameter.SortByEnum.ID: 
+                    queryable = queryable.OrderByDescending(c => c.ID);
+                    break;
+                case QueryParameter.SortByEnum.LandParcel:
+                    queryable = queryable.OrderBy(c => c.LandParcel);
+                    break;
+                case QueryParameter.SortByEnum.MapSheet:
+                    queryable = queryable.OrderBy(c => c.MapSheet);
+                    break;
+                case QueryParameter.SortByEnum.OwnerName:
+                    queryable = queryable.OrderBy(c => c.OwnerName);
+                    break;
+                case QueryParameter.SortByEnum.Acreage:
+                    queryable = queryable.OrderBy(c => c.Acreage);
+                    break;
+            }
+            queryable = queryable
+                .Skip(offset + pageSize * (page - 1))
                 .Take(pageSize);
 
             return queryable;

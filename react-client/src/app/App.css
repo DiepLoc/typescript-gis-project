@@ -25,10 +25,15 @@
 .App-link {
   color: rgb(112, 76, 182);
 }
-
+.ant-descriptions-item-label {
+  font-weight: 300;
+}
 .ant-descriptions-item-content {
-  font-size: 1.2rem;
-  font-weight: bold;
+  font-weight: 500;
+}
+
+.ant-descriptions-item-container {
+  margin-right: 20px;
 }
 
 @keyframes App-logo-float {
